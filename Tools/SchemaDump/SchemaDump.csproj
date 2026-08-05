@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Models\DynastyReader.cs" Link="Models\DynastyReader.cs" />
+    <Compile Include="..\..\Models\DynastyEditor.cs" Link="Models\DynastyEditor.cs" />
+    <Compile Include="..\..\Models\FranchiseTable.cs" Link="Models\FranchiseTable.cs" />
+    <Compile Include="..\..\Models\RecordCodec.cs" Link="Models\RecordCodec.cs" />
+    <Compile Include="..\..\Models\PlayerTableInfo.cs" Link="Models\PlayerTableInfo.cs" />
+  </ItemGroup>
+</Project>

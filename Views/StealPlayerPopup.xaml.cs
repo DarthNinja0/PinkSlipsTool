@@ -144,9 +144,10 @@ public partial class StealPlayerPopup : Window
     {
         if (_selectedPlayer != null)
         {
-            StealButton.IsEnabled = true;
-            StatusText.Text = $"Ready to steal: {_selectedPlayer.Name} ({_selectedPlayer.Position}, {_selectedPlayer.OverallRating} OVR)" +
-                (_yourRoster.Count >= 85 ? " — your roster is full, CUT someone first" : "");
+            StealButton.IsEnabled = _yourRoster.Count < 85;
+            StatusText.Text = _yourRoster.Count >= 85
+                ? $"Ready to steal: {_selectedPlayer.Name} ({_selectedPlayer.Position}, {_selectedPlayer.OverallRating} OVR) — your roster is full, CUT someone first"
+                : $"Ready to steal: {_selectedPlayer.Name} ({_selectedPlayer.Position}, {_selectedPlayer.OverallRating} OVR)";
         }
         else
         {

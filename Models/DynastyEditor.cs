@@ -37,6 +37,7 @@ public class DynastyEditor
     private FranchiseTable _coachTable;
     private FranchiseTable _seasonWeekTable;
     private FranchiseTable _seasonYearTable;
+    private FranchiseTable _rosterArray;
 
     // Offset-table positions verified from the CFB25 (C27) save schema.
     // Player fields are read from the packed (repacked) record layout.
@@ -94,7 +95,9 @@ public class DynastyEditor
         _coachTable = dynasty.GetTable(4176);
         _seasonWeekTable = dynasty.GetTable(PlayerTableInfo.CurrentWeekTableId);
         _seasonYearTable = dynasty.GetTable(PlayerTableInfo.CurrentYearTableId);
+        _rosterArray = dynasty.GetArrayTable(RosterArrayTableId);
         DetectFields();
+        BuildMasterToRowMap();
     }
 
     public bool IsReady => _playerTable != null;
@@ -207,10 +210,85 @@ public class DynastyEditor
     }
 
     // Roster cap enforced by the game. Adding a player to a full roster gets rejected
-    // Roster cap enforced by the game. Make room with CutPlayer before stealing into a
-    // full roster. Verified: every team is stored at exactly 85 players.
+    // by the game — make room with CutPlayer before stealing into a full roster.
+    // Every team is stored at exactly 85 players.
     private const int RosterCap = 85;
     private const int FreeAgentTeamIndex = 255;
+    // Array (ASTO) table holding each team's roster list. Team.Roster (member 242)
+    // is a ref to (RosterArrayTableId, row); that row is the team's roster.
+    private const int RosterArrayTableId = 6097;
+    // Team table (6311) raw offsets: TeamIndex=pos390 (master ID), Roster=pos242 (ref).
+    private const int TeamMasterIdCol = 390;
+    private const int TeamRosterRefCol = 242;
+
+    // Master team ID -> roster array row. Built from the team table's authoritative
+    // Roster refs (verified to equal the array majority field-272 row for every real
+    // team), with an array-majority fallback for any ID the refs don't cover. Coach
+    // TeamIndex and player field-272 are master IDs, NOT array row indices — the two
+    // only coincide for the first few alphabetically-ordered teams.
+    private Dictionary<int, int> _masterToRow;
+
+    private void BuildMasterToRowMap()
+    {
+        _masterToRow = new Dictionary<int, int>();
+        if (_rosterArray == null) return;
+
+        var rowCount = _rosterArray.Header.RecordCount;
+
+        // Primary: team table Team.Roster refs.
+        if (_teamTable?.FieldOffsets != null && _teamTable.FieldBitWidths != null &&
+            TeamRosterRefCol < _teamTable.FieldOffsets.Length && TeamMasterIdCol < _teamTable.FieldOffsets.Length)
+        {
+            var offsets = _teamTable.FieldOffsets;
+            var widths = _teamTable.FieldBitWidths;
+            for (var p = 0; p < _teamTable.Header.NextRecordToUse; p++)
+            {
+                var rec = _teamTable.GetRecordBytes(p);
+                if (rec == null) break;
+                var masterId = RecordCodec.ReadBits(rec, offsets[TeamMasterIdCol], widths[TeamMasterIdCol]);
+                if (masterId == FreeAgentTeamIndex) continue;
+                var rosterRef = RecordCodec.ReadBits(rec, offsets[TeamRosterRefCol], 32);
+                if (((rosterRef >> 17) & 0x7FFF) != RosterArrayTableId) continue;
+                var row = rosterRef & 0x1FFFF;
+                if (row >= 0 && row < rowCount && !_masterToRow.ContainsKey(masterId))
+                    _masterToRow[masterId] = row;
+            }
+        }
+
+        // Fallback: majority field-272 per array row for master IDs the refs missed.
+        if (_playerTable?.FieldOffsets != null && _playerTable.FieldBitWidths != null &&
+            _teamIdxField >= 0 && _teamIdxField < _playerTable.FieldOffsets.Length)
+        {
+            var offsets = _playerTable.FieldOffsets;
+            var widths = _playerTable.FieldBitWidths;
+            var counts = new Dictionary<int, int>();
+            for (var row = 0; row < rowCount; row++)
+            {
+                counts.Clear();
+                var size = _rosterArray.ReadArraySize(row);
+                if (size <= 0) continue;
+                for (var s = 0; s < size; s++)
+                {
+                    var pid = (int)(_rosterArray.ReadArrayRowRef(row, s) & 0x1FFFF);
+                    if (pid >= _playerTable.Header.NextRecordToUse) continue;
+                    var prec = _playerTable.GetRecordBytes(pid);
+                    if (prec == null) continue;
+                    var t = RecordCodec.ReadBits(prec, offsets[_teamIdxField], widths[_teamIdxField]);
+                    counts.TryGetValue(t, out var c);
+                    counts[t] = c + 1;
+                }
+                var best = -1;
+                var bestCount = 0;
+                foreach (var kv in counts)
+                    if (kv.Value > bestCount) { best = kv.Key; bestCount = kv.Value; }
+                if (best >= 0 && best != FreeAgentTeamIndex && !_masterToRow.ContainsKey(best))
+                    _masterToRow[best] = row;
+            }
+        }
+    }
+
+    private int RosterRowOf(int masterId) =>
+        _masterToRow != null && _masterToRow.TryGetValue(masterId, out var row) ? row : -1;
 
     public bool CutPlayer(int playerRecordIndex)
     {
@@ -221,16 +299,19 @@ public class DynastyEditor
             if (_teamIdxField < 0 || _teamIdxField >= offsets.Length) return false;
             var rec = _playerTable.GetRecordBytes(playerRecordIndex);
             if (rec == null) return false;
+            var oldTeam = RecordCodec.ReadBits(rec, offsets[_teamIdxField], WidthAt(_teamIdxField));
+            RemoveFromRoster(oldTeam, playerRecordIndex);
             RecordCodec.WriteBits(rec, offsets[_teamIdxField], WidthAt(_teamIdxField), FreeAgentTeamIndex);
             _playerTable.WriteRecordBytes(playerRecordIndex, rec);
-            _dynasty.SyncTable(_playerTable);
+            SyncEditedTables();
             return true;
         }
         catch { return false; }
     }
 
-    // Mirrors UpgradeDevTrait: a single field write on the player record. This is the
-    // exact mechanism verified to work in-game.
+    // Mirrors UpgradeDevTrait: a single field write on the player record, plus the roster
+    // array update so the game's roster stays consistent. This is the mechanism verified
+    // to work in-game.
     public bool StealPlayer(int playerRecordIndex, int newTeamIndex)
     {
         try
@@ -240,16 +321,28 @@ public class DynastyEditor
             if (_teamIdxField < 0 || _teamIdxField >= offsets.Length) return false;
             var rec = _playerTable.GetRecordBytes(playerRecordIndex);
             if (rec == null) return false;
+
+            // The game rejects transfers into a full roster; the UI tells the user to cut
+            // someone first. Enforce the cap here so the save stays valid.
+            var newRow = RosterRowOf(newTeamIndex);
+            if (newRow >= 0 && _rosterArray.ReadArraySize(newRow) >= RosterCap)
+                return false;
+
+            var oldTeam = RecordCodec.ReadBits(rec, offsets[_teamIdxField], WidthAt(_teamIdxField));
+            RemoveFromRoster(oldTeam, playerRecordIndex);
+            AddToRoster(newTeamIndex, playerRecordIndex);
+
             RecordCodec.WriteBits(rec, offsets[_teamIdxField], WidthAt(_teamIdxField), newTeamIndex);
             _playerTable.WriteRecordBytes(playerRecordIndex, rec);
-            _dynasty.SyncTable(_playerTable);
+            SyncEditedTables();
             return true;
         }
         catch { return false; }
     }
 
-    // Swap the team field between two player records. Both rosters stay at the same size
-    // (no cuts, nothing deleted), so the game never trims either side on load.
+    // Swap the team field between two player records and swap their entries in the two
+    // roster arrays. Both rosters stay at the same size (no cuts, nothing deleted), so
+    // the game never trims either side on load.
     public bool TransferPlayer(int playerRecordIndex, int otherPlayerRecordIndex)
     {
         try
@@ -262,14 +355,77 @@ public class DynastyEditor
             if (recA == null || recB == null) return false;
             var teamA = RecordCodec.ReadBits(recA, offsets[_teamIdxField], WidthAt(_teamIdxField));
             var teamB = RecordCodec.ReadBits(recB, offsets[_teamIdxField], WidthAt(_teamIdxField));
+
+            // Move roster entries: remove each player from their current team's roster,
+            // then add them to the other team's (free agency has no roster row). Removing
+            // first keeps both rosters at their previous size, so the game never trims
+            // either side on load.
+            RemoveFromRoster(teamA, playerRecordIndex);
+            RemoveFromRoster(teamB, otherPlayerRecordIndex);
+            AddToRoster(teamB, playerRecordIndex);
+            AddToRoster(teamA, otherPlayerRecordIndex);
+
             RecordCodec.WriteBits(recA, offsets[_teamIdxField], WidthAt(_teamIdxField), teamB);
             RecordCodec.WriteBits(recB, offsets[_teamIdxField], WidthAt(_teamIdxField), teamA);
             _playerTable.WriteRecordBytes(playerRecordIndex, recA);
             _playerTable.WriteRecordBytes(otherPlayerRecordIndex, recB);
-            _dynasty.SyncTable(_playerTable);
+            SyncEditedTables();
             return true;
         }
         catch { return false; }
+    }
+
+    private uint PlayerRef(int playerRecordIndex) =>
+        (uint)((PlayerTableInfo.TableId << 17) | playerRecordIndex);
+
+    // All roster operations take the player's master team ID (coach TeamIndex, player
+    // field-272) and convert it to the roster array row via _masterToRow. Free agency
+    // (255) has no row, so RosterRowOf returns -1 and these become no-ops.
+    private bool IsRosterTeam(int masterId) =>
+        _rosterArray != null && RosterRowOf(masterId) >= 0;
+
+    private int FindRosterSlot(int masterId, int playerRecordIndex)
+    {
+        var row = RosterRowOf(masterId);
+        if (row < 0) return -1;
+        var size = _rosterArray.ReadArraySize(row);
+        var target = PlayerRef(playerRecordIndex);
+        for (var s = 0; s < size; s++)
+            if (_rosterArray.ReadArrayRowRef(row, s) == target) return s;
+        return -1;
+    }
+
+    private void RemoveFromRoster(int masterId, int playerRecordIndex)
+    {
+        var row = RosterRowOf(masterId);
+        if (row < 0) return;
+        var size = _rosterArray.ReadArraySize(row);
+        var slot = FindRosterSlot(masterId, playerRecordIndex);
+        if (slot < 0 || slot >= size) return;
+        // Compact the list so the game sees no holes.
+        for (var s = slot; s < size - 1; s++)
+            _rosterArray.WriteArrayRowRef(row, s, _rosterArray.ReadArrayRowRef(row, s + 1));
+        _rosterArray.WriteArrayRowRef(row, size - 1, 0);
+        _rosterArray.WriteArraySize(row, size - 1);
+    }
+
+    private void AddToRoster(int masterId, int playerRecordIndex)
+    {
+        var row = RosterRowOf(masterId);
+        if (row < 0) return;
+        var slots = _rosterArray.Header.RecordSize / 4;
+        var size = _rosterArray.ReadArraySize(row);
+        if (size < 0 || size >= slots) return;
+        _rosterArray.WriteArrayRowRef(row, size, PlayerRef(playerRecordIndex));
+        _rosterArray.WriteArraySize(row, size + 1);
+    }
+
+    // Sync order matters: the player table buffer physically contains the roster array's
+    // bytes, so it must be copied back first, then the (edited) roster array on top.
+    private void SyncEditedTables()
+    {
+        _dynasty.SyncTable(_playerTable);
+        if (_rosterArray != null) _dynasty.SyncTable(_rosterArray);
     }
 
     public bool UpgradeDevTrait(int playerRecordIndex)
@@ -403,7 +559,7 @@ public class DynastyEditor
                 lines.Add($"  R{ri}: Team={ti} Name=[{name}] Pos={pos} OVR={ovr}");
             }
             var userTeam = FindUserTeamIndex();
-            lines.Add($"User team (Coach): {userTeam}");
+            lines.Add($"User team (Coach): {userTeam} -> array row {RosterRowOf(userTeam)}");
         }
         WriteDiagnosticFile();
         return string.Join("\n", lines);
@@ -435,7 +591,7 @@ public class DynastyEditor
                     lines.Add($"  R{ri}: Team={ti} Name=[{name}] Pos={pos} OVR={ovr} Dev={dev}");
                 }
                 var userTeam = FindUserTeamIndex();
-                lines.Add($"User team (Coach): {userTeam}");
+                lines.Add($"User team (Coach): {userTeam} -> array row {RosterRowOf(userTeam)}");
                 var h = pt.Header;
                 lines.Add($"Player header: storeLen={h.TableStoreLength} recCount={h.RecordCount} recWords={h.RecordWords} recCapacity={h.RecordCapacity} members={h.NumMembers} nextUse={h.NextRecordToUse} recSize={h.RecordSize} offStart={h.OffsetStart} t1Start={h.Table1Start} t2Start={h.Table2Start}");
                 // Search entire decompressed payload for known player names from CSV

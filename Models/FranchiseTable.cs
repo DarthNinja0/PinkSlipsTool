@@ -35,7 +35,8 @@ public class FranchiseTable
 
     public byte[] GetRecordBytes(int index)
     {
-        if (index < 0 || index >= Header.NextRecordToUse)
+        var count = Header.IsArray ? Header.RecordCount : Header.NextRecordToUse;
+        if (index < 0 || index >= count)
             return null;
         var off = Header.Table1Start + index * Header.RecordSize;
         var result = new byte[Header.RecordSize];
@@ -45,10 +46,50 @@ public class FranchiseTable
 
     public void WriteRecordBytes(int index, byte[] record)
     {
-        if (index < 0 || index >= Header.NextRecordToUse) return;
+        var count = Header.IsArray ? Header.RecordCount : Header.NextRecordToUse;
+        if (index < 0 || index >= count) return;
         if (record == null || record.Length != Header.RecordSize) return;
         var off = Header.Table1Start + index * Header.RecordSize;
         Array.Copy(record, 0, Data, off, Header.RecordSize);
+    }
+
+    // ---- Array (ASTO) table helpers ------------------------------------
+    // Array rows are fixed-size lists of 32-bit references. Header.OffsetStart
+    // points at the per-row "arraySizes" table (one 32-bit count per row).
+
+    public int ReadArraySize(int index)
+    {
+        if (!Header.IsArray || index < 0 || index >= Header.RecordCount) return -1;
+        return ReadU32BE(Data, Header.OffsetStart + index * 4);
+    }
+
+    public void WriteArraySize(int index, int value)
+    {
+        if (!Header.IsArray || index < 0 || index >= Header.RecordCount) return;
+        var off = Header.OffsetStart + index * 4;
+        Data[off] = (byte)(value >> 24);
+        Data[off + 1] = (byte)(value >> 16);
+        Data[off + 2] = (byte)(value >> 8);
+        Data[off + 3] = (byte)value;
+    }
+
+    public uint ReadArrayRowRef(int row, int slot)
+    {
+        if (!Header.IsArray) return 0;
+        var off = Header.Table1Start + row * Header.RecordSize + slot * 4;
+        if (off < 0 || off + 4 > Data.Length) return 0;
+        return (uint)((Data[off] << 24) | (Data[off + 1] << 16) | (Data[off + 2] << 8) | Data[off + 3]);
+    }
+
+    public void WriteArrayRowRef(int row, int slot, uint value)
+    {
+        if (!Header.IsArray) return;
+        var off = Header.Table1Start + row * Header.RecordSize + slot * 4;
+        if (off < 0 || off + 4 > Data.Length) return;
+        Data[off] = (byte)(value >> 24);
+        Data[off + 1] = (byte)(value >> 16);
+        Data[off + 2] = (byte)(value >> 8);
+        Data[off + 3] = (byte)value;
     }
 
     public int[] ReadRawOffsetTable()
@@ -220,6 +261,51 @@ public static class FranchiseTableParser
             }
         }
         return starts;
+    }
+
+    // Array tables (ASTO magic) live embedded between SPBF tables. Each one is a fixed
+    // row set of 32-bit references (e.g. Team.Roster -> Player[] table 6097, "RosterStore").
+    // The block extent is self-described: headerSize + recordCount*4 (arraySizes) +
+    // recordCount*recordSize. Validation rejects string-pool false positives.
+    public static List<FranchiseTable> ScanArrayTables(byte[] payload)
+    {
+        var results = new List<FranchiseTable>();
+        var magic = "ASTO"u8.ToArray();
+        for (var i = 0; i < payload.Length - 3; i++)
+        {
+            if (payload[i] != magic[0] || payload[i + 1] != magic[1] ||
+                payload[i + 2] != magic[2] || payload[i + 3] != magic[3]) continue;
+            var start = i - TableStartOffset;
+            if (start < 0 || payload.Length - start < 200) continue;
+
+            var buf = new byte[payload.Length - start];
+            Array.Copy(payload, start, buf, 0, buf.Length);
+            try
+            {
+                var header = ParseTableHeader(buf);
+                if (!header.IsArray) continue;
+                if (header.RecordCount <= 0 || header.RecordCount > 1_000_000) continue;
+                if (header.RecordSize <= 0 || header.RecordSize > 1_000_000) continue;
+                // Self-reference: the header's data1TableId must equal the block tableId.
+                var ho = HeaderStart + 40 + header.TableStoreLength;
+                if (ho + 8 >= buf.Length) continue;
+                if (ReadU32BE(buf, ho + 4) != header.TableId) continue;
+                var extent = header.Table2Start;
+                if (extent <= 0 || extent > buf.Length) continue;
+
+                var data = new byte[extent];
+                Array.Copy(buf, 0, data, 0, extent);
+                results.Add(new FranchiseTable
+                {
+                    AbsoluteStart = start,
+                    AbsoluteEnd = start + extent,
+                    Header = header,
+                    Data = data
+                });
+            }
+            catch { }
+        }
+        return results;
     }
 
     private static string ReadCString(byte[] buf, int offset)

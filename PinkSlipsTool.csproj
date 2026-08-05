@@ -17,4 +17,8 @@
     <Resource Include="Images\PinkSlipsHeader.png" />
     <Resource Include="Images\C4Logo.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Tools\**" />
+    <None Remove="Tools\**" />
+  </ItemGroup>
 </Project>

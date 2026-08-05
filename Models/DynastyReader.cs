@@ -18,6 +18,7 @@ public class DynastyFile
     public byte[] RawBytes { get; set; }
     public byte[] DecompressedPayload { get; set; }
     public List<FranchiseTable> Tables { get; set; } = new();
+    public List<FranchiseTable> ArrayTables { get; set; } = new();
     public int DeflateStartOffset { get; set; }
     // Offset in RawBytes just past the original zlib adler32 trailer. Everything from here
     // to EOF (the post-stream tail records + padding) is preserved verbatim on save.
@@ -27,6 +28,9 @@ public class DynastyFile
 
     public FranchiseTable GetTable(int tableId) =>
         Tables.Find(t => t.Header.TableId == tableId);
+
+    public FranchiseTable GetArrayTable(int tableId) =>
+        ArrayTables.Find(t => t.Header.TableId == tableId);
 
     public FranchiseTable GetTableByName(string name) =>
         Tables.Find(t => t.Header.Name == name);
@@ -53,6 +57,7 @@ public class DynastyFile
         RawBytes = restored.RawBytes;
         DecompressedPayload = restored.DecompressedPayload;
         Tables = restored.Tables;
+        ArrayTables = restored.ArrayTables;
         DeflateStartOffset = restored.DeflateStartOffset;
         PostStreamOffset = restored.PostStreamOffset;
         BackupPath = backupPath;
@@ -121,12 +126,14 @@ public class DynastyFile
         var payload = outputStream.ToArray();
 
         var tables = FranchiseTableParser.ScanTables(payload);
+        var arrayTables = FranchiseTableParser.ScanArrayTables(payload);
 
         return new DynastyFile
         {
             RawBytes = data,
             DecompressedPayload = payload,
             Tables = tables,
+            ArrayTables = arrayTables,
             DeflateStartOffset = deflateStart,
             PostStreamOffset = FindPostStreamOffset(data, deflateStart, payload)
         };
