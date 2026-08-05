@@ -15,10 +15,12 @@ public partial class PinkSlipsWheelPopup : Window
     private bool _hasSpun;
     private int _selectedIndex = -1;
 
-    private static readonly List<PerkDef> WheelPerks = PerkManager.DefaultPerks;
+    private static readonly List<PerkDef> WheelPerks = PerkManager.WheelPerks;
 
-    // Weight per perk index: higher = bigger slice = more likely to land there
-    private static readonly int[] SliceWeights = { 1, 2, 4, 5, 2, 5, 1, 2, 1, 3 };
+    // Weight per perk index (matches WheelPerks order): higher = bigger slice =
+    // more likely to land there. Penalties (Dev Down, Shock, Illness, Ineligible,
+    // Retire) are weighted heavier; the big rewards are rare.
+    private static readonly int[] SliceWeights = { 1, 2, 5, 1, 4, 5, 4, 4, 2, 2, 4, 3 };
     private static readonly double[] SliceAngles = ComputeSliceAngles();
     private static readonly int TotalWeight = SliceWeights.Sum();
 
@@ -80,9 +82,9 @@ public partial class PinkSlipsWheelPopup : Window
 
             var label = new TextBlock
             {
-                Text = WheelPerks[i].Name,
+                Text = WheelPerks[i].ShortName ?? WheelPerks[i].Name,
                 Foreground = Brushes.White,
-                FontSize = 11,
+                FontSize = 10.5,
                 FontWeight = FontWeight.FromOpenTypeWeight(700),
                 TextAlignment = TextAlignment.Center,
                 RenderTransform = new RotateTransform(textAngle),

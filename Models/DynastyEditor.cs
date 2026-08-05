@@ -213,7 +213,7 @@ public class DynastyEditor
     // by the game — make room with CutPlayer before stealing into a full roster.
     // Every team is stored at exactly 85 players.
     private const int RosterCap = 85;
-    private const int FreeAgentTeamIndex = 255;
+    public const int FreeAgentTeamIndex = 255;
     // Array (ASTO) table holding each team's roster list. Team.Roster (member 242)
     // is a ref to (RosterArrayTableId, row); that row is the team's roster.
     private const int RosterArrayTableId = 6097;
@@ -441,6 +441,99 @@ public class DynastyEditor
             var current = RecordCodec.ReadBits(rec, offsets[_traitDevField], WidthAt(_traitDevField));
             if (current >= 3) return false;
             RecordCodec.WriteBits(rec, offsets[_traitDevField], WidthAt(_traitDevField), current + 1);
+            _playerTable.WriteRecordBytes(playerRecordIndex, rec);
+            _dynasty.SyncTable(_playerTable);
+            return true;
+        }
+        catch { return false; }
+    }
+
+    public bool DowngradeDevTrait(int playerRecordIndex)
+    {
+        try
+        {
+            if (_playerTable?.FieldOffsets == null || _playerTable.FieldBitWidths == null) return false;
+            var offsets = _playerTable.FieldOffsets;
+            if (_traitDevField < 0 || _traitDevField >= offsets.Length) return false;
+            var rec = _playerTable.GetRecordBytes(playerRecordIndex);
+            if (rec == null) return false;
+            var current = RecordCodec.ReadBits(rec, offsets[_traitDevField], WidthAt(_traitDevField));
+            if (current <= 0) return false;
+            RecordCodec.WriteBits(rec, offsets[_traitDevField], WidthAt(_traitDevField), current - 1);
+            _playerTable.WriteRecordBytes(playerRecordIndex, rec);
+            _dynasty.SyncTable(_playerTable);
+            return true;
+        }
+        catch { return false; }
+    }
+
+    public bool SetPosition(int playerRecordIndex, int positionValue)
+    {
+        try
+        {
+            if (_playerTable?.FieldOffsets == null || _playerTable.FieldBitWidths == null) return false;
+            var offsets = _playerTable.FieldOffsets;
+            if (_posField < 0 || _posField >= offsets.Length) return false;
+            var rec = _playerTable.GetRecordBytes(playerRecordIndex);
+            if (rec == null) return false;
+            var current = RecordCodec.ReadBits(rec, offsets[_posField], WidthAt(_posField));
+            if (current == positionValue) return false;
+            RecordCodec.WriteBits(rec, offsets[_posField], WidthAt(_posField), positionValue);
+            _playerTable.WriteRecordBytes(playerRecordIndex, rec);
+            _dynasty.SyncTable(_playerTable);
+            return true;
+        }
+        catch { return false; }
+    }
+
+    public bool SetSchoolYear(int playerRecordIndex, int schoolYear)
+    {
+        try
+        {
+            if (_playerTable?.FieldOffsets == null || _playerTable.FieldBitWidths == null) return false;
+            var offsets = _playerTable.FieldOffsets;
+            if (_schoolYearField < 0 || _schoolYearField >= offsets.Length) return false;
+            var rec = _playerTable.GetRecordBytes(playerRecordIndex);
+            if (rec == null) return false;
+            var current = RecordCodec.ReadBits(rec, offsets[_schoolYearField], WidthAt(_schoolYearField));
+            if (current == schoolYear) return false;
+            RecordCodec.WriteBits(rec, offsets[_schoolYearField], WidthAt(_schoolYearField), schoolYear);
+            _playerTable.WriteRecordBytes(playerRecordIndex, rec);
+            _dynasty.SyncTable(_playerTable);
+            return true;
+        }
+        catch { return false; }
+    }
+
+    // Clears every injury field back to the healthy baseline. Mirrors the field layout
+    // applied by ApplyInjury so a healed player shows no residual flags anywhere.
+    public bool HealInjury(int playerRecordIndex)
+    {
+        try
+        {
+            if (_playerTable?.FieldOffsets == null || _playerTable.FieldBitWidths == null) return false;
+            var offsets = _playerTable.FieldOffsets;
+            var widths = _playerTable.FieldBitWidths;
+            if (_injuryStatusField < 0 || _injuryStatusField >= offsets.Length) return false;
+
+            var rec = _playerTable.GetRecordBytes(playerRecordIndex);
+            if (rec == null) return false;
+            var targetStatus = RecordCodec.ReadBits(rec, offsets[_injuryStatusField], WidthAt(_injuryStatusField));
+            if (targetStatus != PlayerTableInfo.InjuryStatusInjured) return false;
+
+            WriteField(rec, offsets, widths, _injuryStatusField, PlayerTableInfo.InjuryStatusHealthy);
+            WriteField(rec, offsets, widths, _injuryTypeField, PlayerTableInfo.InjuryTypeNone);
+            WriteField(rec, offsets, widths, _injurySeverityField, PlayerTableInfo.InjurySeverityNone);
+            WriteField(rec, offsets, widths, _totalInjuryDurationField, 0);
+            WriteField(rec, offsets, widths, _maxInjuryDurationField, 0);
+            WriteField(rec, offsets, widths, _minInjuryDurationField, 0);
+            WriteField(rec, offsets, widths, _latestInjuryWeekField, 0);
+            WriteField(rec, offsets, widths, _latestInjuryYearField, 0);
+            WriteField(rec, offsets, widths, _latestInjuryStageField, 0);
+            WriteField(rec, offsets, widths, _wasPreviouslyInjuredField, 0);
+            WriteField(rec, offsets, widths, _currentYearEndingWeekField, 0);
+            WriteField(rec, offsets, widths, _lastYearEndingWeekField, 0);
+
             _playerTable.WriteRecordBytes(playerRecordIndex, rec);
             _dynasty.SyncTable(_playerTable);
             return true;
@@ -825,6 +918,8 @@ internal static class PositionNames
     public static string GetValueOrDefault(int key, string fallback) =>
         key == InvalidValue ? "Invalid" :
         key >= 0 && key < Names.Length ? Names[key] : fallback;
+    public static (int Value, string Name)[] All =>
+        Names.Select((n, i) => (i, n)).ToArray();
 }
 
 internal static class InjuryTypeNames

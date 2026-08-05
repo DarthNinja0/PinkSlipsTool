@@ -61,24 +61,38 @@ result can be applied once.
 
 ### 🛍️ Perk Shop
 
-Spend stars on any perk:
+Spend stars on any perk. File-applied perks open an editor popup (a dynasty file must be loaded);
+honor-system perks are applied by the league's honor system (not written to the save):
 
 | Perk | Cost | Effect |
 |---|---|---|
-| Steal Player | 4 | Take a player from any team (needs dynasty file) |
-| Dev Upgrade | 2 | Upgrade a player's dev trait (needs dynasty file) |
+| Steal Player | 4 | Take a player from any team (file) |
+| Dev Upgrade | 2 | Upgrade a player's dev trait (file) |
+| Dev Downgrade | 1 | Downgrade a player's dev trait — penalty (file) |
+| Injury Heal | 3 | Instantly heal a player's injury (file) |
+| Transfer Shock | 2 | Send one of your players to a rival team — penalty (file) |
+| Drug Test | 3 | Give any player a one-game injury (file) |
+| Team Illness | 2 | A random player gets injured — penalty (file) |
+| Academic Ineligibility | 2 | A player must sit the game — penalty (file) |
+| Position Coach | 2 | Change a player's position (file) |
+| Fifth Year | 2 | Grant a player an extra year of eligibility (file) |
+| FA Sign | 3 | Sign any free agent to your team (file) |
+| Double Steal | 6 | Steal TWO players from any teams (file) |
 | Emergency QB | 2 | Convert any WR to QB for one game |
 | Retire Player | 3 | Force a player to retire immediately |
 | Chat Picks | 4 | View opponent's play calls for one quarter |
-| Drug Test | 3 | Give any player a one-game injury (needs dynasty file) |
 | Recruit Boost | 5 | +10% interest on top recruit |
 | Transfer Portal | 4 | Guaranteed 5-star transfer next season |
 | Stadium Upgrade | 5 | Unlock facility upgrade now |
+| NIL Boost | 5 | +NIL money for recruiting |
+| Playbook Leak | 3 | See opponent's first play this week |
+| Red Shirt | 2 | Protect a player from injury penalties for a week |
+| Facility Boost | 5 | Pick the bonus for next week's training |
 | Extra Spin | 3 | Earn another free wheel spin |
 
 ### 🏈 Dynasty File Editing
 
-These open from perks (Steal Player, Dev Upgrade, Drug Test) once a dynasty file is loaded.
+These open from perks once a dynasty file is loaded.
 
 #### Steal Player / Transfer / Cut
 - Pick any team, then a player.
@@ -88,12 +102,30 @@ These open from perks (Steal Player, Dev Upgrade, Drug Test) once a dynasty file
   same size** and nobody is cut.
 - **CUT** — releases a player from your roster to free agency.
 
-#### Dev Upgrade
-- Pick a player from your roster and raise their dev trait one level:
+#### Dev Upgrade / Dev Downgrade
+- Pick a player from your roster and raise or lower their dev trait one level:
   Normal → Impact → Star → Elite.
 
-#### Drug Test (injure)
-- Give any player a one-game injury.
+#### Drug Test / Team Illness / Academic Ineligibility
+- **Drug Test** — pick a player to get a one-game injury.
+- **Team Illness** — a random player (auto-selected) gets injured.
+- **Academic Ineligibility** — pick a player to sit the game (same one-game injury mechanic).
+
+#### Injury Heal
+- Lists only injured players; picks one and clears their entire injury block instantly.
+
+#### Transfer Shock
+- Pick one of your players, then a rival team. If the rival is at the 85 cap, their lowest-rated
+  player is released to free agency to make room.
+
+#### Position Coach
+- Pick a player, then any position (CFB25 PositionE enum, e.g. QB → WR → KR).
+
+#### Fifth Year
+- Pick a player to get one extra year of eligibility (FR → SO → JR → SR → GR).
+
+#### FA Sign
+- Pick any free agent to add to your team. Your roster must have room (85 cap) — cut first if full.
 
 ### 💾 Save / Backup
 
@@ -106,17 +138,16 @@ These open from perks (Steal Player, Dev Upgrade, Drug Test) once a dynasty file
 
 ## Known Limitations
 
-- **Steal / Transfer roster-adds do not persist in the game yet.** The write to the save file is
-  correct and verified (the player's team field is changed and rosters stay 85 on a transfer), but
-  when the game loads and re-saves, it **reverts added players to their original team**. Evidence:
-  - Dev-trait upgrades and **cuts stick** in-game (cut = released to free agency, which matches the
-    game's own logic).
-  - Only roster *additions* get reverted — so this is not anti-cheat / tamper protection, it's the
-    game recomputing team membership from its own (as-yet unidentified) roster table and
-    overwriting the field the tool edits.
-- **Cuts and dev-trait upgrades work and persist.** Use those for reliable edits today.
-- No mod is required to make transfers stick — the game's authoritative roster table just needs to
-  be located and written alongside the field the tool currently edits. Work in progress.
+- **Every dynasty team is usually at the 85-player cap.** Roster *adds* (Steal, FA Sign, Transfer
+  Shock) release the rival's / make-room cut automatically (Transfer Shock) or require you to cut
+  first (Steal, FA Sign). The tool enforces the cap so the save never gets rejected by the game.
+- **Honor-system perks** (Emergency QB, Retire Player, Chat Picks, Recruit Boost, Transfer Portal,
+  Stadium Upgrade, NIL Boost, Playbook Leak, Red Shirt, Facility Boost) are *not* written to the
+  save — the league applies them by hand.
+- Roster moves, dev-trait changes, injuries/heals, positions, and school years are written to the
+  player table **and** the roster array (bit-verified, reload-checked by `SchemaDump checkroster`).
+  A live in-game test confirmed a stolen player appears on the new team after reload.
+- No mod is required for edits to persist.
 
 ---
 

@@ -11,7 +11,7 @@
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <TextBlock Grid.Row="0" Text="Pick one of YOUR players to get a game-ending injury (penalty):"
+    <TextBlock x:Name="InstructionText" Grid.Row="0" Text="Pick one of YOUR players to get a game-ending injury (penalty):"
                Foreground="#FFD700" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" />
 
     <Grid Grid.Row="1">

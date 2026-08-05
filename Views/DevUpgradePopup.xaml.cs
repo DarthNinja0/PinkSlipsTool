@@ -8,13 +8,21 @@ public partial class DevUpgradePopup : Window
 {
     private readonly DynastyEditor _editor;
     private readonly int _userTeamIndex;
+    private readonly bool _downgrade;
     private PlayerData _selectedPlayer;
 
-    public DevUpgradePopup(DynastyFile dynasty)
+    public DevUpgradePopup(DynastyFile dynasty, bool downgrade = false)
     {
         InitializeComponent();
+        _downgrade = downgrade;
         _editor = new DynastyEditor(dynasty);
         _userTeamIndex = _editor.FindUserTeamIndex();
+        if (_downgrade)
+        {
+            Title = "Downgrade Dev Trait";
+            InstructionText.Text = "Select a player to DOWNGRADE their development trait (penalty):";
+            UpgradeButton.Content = "DOWNGRADE DEV TRAIT";
+        }
         LoadRoster();
     }
 
@@ -39,18 +47,34 @@ public partial class DevUpgradePopup : Window
     private void PlayerList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         _selectedPlayer = PlayerListBox.SelectedItem as PlayerData;
-        if (_selectedPlayer != null)
+        if (_selectedPlayer == null) return;
+
+        if (_downgrade)
         {
-            if (_selectedPlayer.TraitDevelopment >= 3)
+            if (_selectedPlayer.TraitDevelopment <= 0)
             {
                 UpgradeButton.IsEnabled = false;
-                StatusText.Text = $"{_selectedPlayer.Name} is already Elite — cannot upgrade further";
+                StatusText.Text = $"{_selectedPlayer.Name} is already Normal — cannot downgrade further";
             }
             else
             {
                 UpgradeButton.IsEnabled = true;
-                StatusText.Text = $"{_selectedPlayer.Name} ({_selectedPlayer.Position})  {_selectedPlayer.DevTrait} → {_selectedPlayer.TraitDevelopment + 1 switch {1=>"Impact",2=>"Star",3=>"Elite",_=>"?"}}";
+                var newTrait = _selectedPlayer.TraitDevelopment - 1;
+                var newTraitName = newTrait switch { 0 => "Normal", 1 => "Impact", 2 => "Star", _ => "?" };
+                StatusText.Text = $"{_selectedPlayer.Name} ({_selectedPlayer.Position})  {_selectedPlayer.DevTrait} → {newTraitName}";
             }
+            return;
+        }
+
+        if (_selectedPlayer.TraitDevelopment >= 3)
+        {
+            UpgradeButton.IsEnabled = false;
+            StatusText.Text = $"{_selectedPlayer.Name} is already Elite — cannot upgrade further";
+        }
+        else
+        {
+            UpgradeButton.IsEnabled = true;
+            StatusText.Text = $"{_selectedPlayer.Name} ({_selectedPlayer.Position})  {_selectedPlayer.DevTrait} → {_selectedPlayer.TraitDevelopment + 1 switch {1=>"Impact",2=>"Star",3=>"Elite",_=>"?"}}";
         }
     }
 
@@ -59,14 +83,38 @@ public partial class DevUpgradePopup : Window
         if (_selectedPlayer == null) return;
 
         var player = _selectedPlayer;
-        var newTrait = player.TraitDevelopment + 1;
-        var newTraitName = newTrait switch { 1 => "Impact", 2 => "Star", 3 => "Elite", _ => "?" };
 
-        var result = MessageBox.Show(
-            $"Upgrade {player.Name}'s dev trait from {player.DevTrait} to {newTraitName}?",
+        if (_downgrade)
+        {
+            var newTrait = player.TraitDevelopment - 1;
+            var newTraitName = newTrait switch { 0 => "Normal", 1 => "Impact", 2 => "Star", _ => "?" };
+
+            var result = MessageBox.Show(
+                $"Downgrade {player.Name}'s dev trait from {player.DevTrait} to {newTraitName}?",
+                "Confirm Downgrade", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            if (!_editor.DowngradeDevTrait(player.RecordIndex))
+            {
+                StatusText.Text = "Downgrade failed — field detection may be incorrect";
+                return;
+            }
+
+            LoadRoster();
+            UpgradeButton.IsEnabled = false;
+            StatusText.Text = $"DOWNGRADED: {player.Name} is now {newTraitName}!";
+            return;
+        }
+
+        var newTraitUp = player.TraitDevelopment + 1;
+        var newTraitUpName = newTraitUp switch { 1 => "Impact", 2 => "Star", 3 => "Elite", _ => "?" };
+
+        var resultUp = MessageBox.Show(
+            $"Upgrade {player.Name}'s dev trait from {player.DevTrait} to {newTraitUpName}?",
             "Confirm Upgrade", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-        if (result != MessageBoxResult.Yes) return;
+        if (resultUp != MessageBoxResult.Yes) return;
 
         if (!_editor.UpgradeDevTrait(player.RecordIndex))
         {
@@ -78,6 +126,6 @@ public partial class DevUpgradePopup : Window
         // captured values from before the reload)
         LoadRoster();
         UpgradeButton.IsEnabled = false;
-        StatusText.Text = $"UPGRADED: {player.Name} is now {newTraitName}!";
+        StatusText.Text = $"UPGRADED: {player.Name} is now {newTraitUpName}!";
     }
 }

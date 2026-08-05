@@ -235,54 +235,69 @@ public class MainViewModel : INotifyPropertyChanged
     private void ApplyWheelPerk(PerkDef perk)
     {
         _perks.PerksApplied.Add(perk.Name);
-
-        if (perk.Name == "Steal Player" && _dynasty != null)
-        {
-            var popup = new StealPlayerPopup(_dynasty);
-            popup.Owner = Application.Current.MainWindow;
-            popup.ShowDialog();
-        }
-        else if (perk.Name == "Dev Upgrade" && _dynasty != null)
-        {
-            var popup = new DevUpgradePopup(_dynasty);
-            popup.Owner = Application.Current.MainWindow;
-            popup.ShowDialog();
-        }
-        else if (perk.Name == "Drug Test" && _dynasty != null)
-        {
-            var popup = new InjuryPopup(_dynasty);
-            popup.Owner = Application.Current.MainWindow;
-            popup.ShowDialog();
-        }
-
+        if (perk.NeedsDynastyFile) LaunchPerk(perk);
         SetStatus($"Wheel reward: {perk.Name}");
     }
 
     public void ApplyPerk(PerkDef perk)
     {
         if (!_perks.ApplyPerk(perk)) return;
-
-        if (perk.Name == "Steal Player" && _dynasty != null)
-        {
-            var popup = new StealPlayerPopup(_dynasty);
-            popup.Owner = Application.Current.MainWindow;
-            popup.ShowDialog();
-        }
-        else if (perk.Name == "Dev Upgrade" && _dynasty != null)
-        {
-            var popup = new DevUpgradePopup(_dynasty);
-            popup.Owner = Application.Current.MainWindow;
-            popup.ShowDialog();
-        }
-        else if (perk.Name == "Drug Test" && _dynasty != null)
-        {
-            var popup = new InjuryPopup(_dynasty);
-            popup.Owner = Application.Current.MainWindow;
-            popup.ShowDialog();
-        }
-
+        if (perk.NeedsDynastyFile) LaunchPerk(perk);
         SetStatus($"Applied: {perk.Name} ({perk.StarCost} stars)");
         OnPropertyChanged(nameof(StarsEarned));
+    }
+
+    // Dispatch a file-applied perk to its editor popup. Honor-system perks (no dynasty
+    // file needed) never reach here — they're just acknowledged in the status bar.
+    private void LaunchPerk(PerkDef perk)
+    {
+        if (_dynasty == null) return;
+
+        switch (perk.Name)
+        {
+            case "Steal Player":
+            case "Double Steal":
+                ShowDialog(new StealPlayerPopup(_dynasty));
+                if (perk.Name == "Double Steal")
+                    ShowDialog(new StealPlayerPopup(_dynasty));
+                break;
+            case "Dev Upgrade":
+                ShowDialog(new DevUpgradePopup(_dynasty));
+                break;
+            case "Dev Downgrade":
+                ShowDialog(new DevUpgradePopup(_dynasty, downgrade: true));
+                break;
+            case "Injury Heal":
+                ShowDialog(new InjuryPopup(_dynasty, InjuryPopup.Mode.Heal));
+                break;
+            case "Transfer Shock":
+                ShowDialog(new TransferShockPopup(_dynasty));
+                break;
+            case "Drug Test":
+                ShowDialog(new InjuryPopup(_dynasty, InjuryPopup.Mode.Injure));
+                break;
+            case "Team Illness":
+                ShowDialog(new InjuryPopup(_dynasty, InjuryPopup.Mode.TeamIllness));
+                break;
+            case "Academic Ineligibility":
+                ShowDialog(new InjuryPopup(_dynasty, InjuryPopup.Mode.Academic));
+                break;
+            case "Position Coach":
+                ShowDialog(new PositionCoachPopup(_dynasty));
+                break;
+            case "Fifth Year":
+                ShowDialog(new FifthYearPopup(_dynasty));
+                break;
+            case "FA Sign":
+                ShowDialog(new FreeAgentPopup(_dynasty));
+                break;
+        }
+    }
+
+    private static void ShowDialog(Window popup)
+    {
+        popup.Owner = Application.Current.MainWindow;
+        popup.ShowDialog();
     }
 
     // Dynasty file operations
