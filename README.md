@@ -19,11 +19,11 @@ dynasty save file directly — steal players, upgrade dev traits, and more.
 
 ## Getting Started
 
-> **⚠️ Important — prepare your save in CFB25 first, in this order:**
+> **⚠️ Important — prepare your save in CFB27 first, in this order:**
 >
 > 1. **Play the week's game.**
 > 2. **Save your dynasty** in the game menu.
-> 3. **Back out of dynasty mode** (return to the main CFB25 menu) so the game is not holding the
+> 3. **Back out of dynasty mode** (return to the main CFB27 menu) so the game is not holding the
 >    save file open — the tool and the game must never edit it at the same time.
 > 4. Now open Pink Slips Tool and **Load Dynasty File**.
 >
@@ -138,7 +138,7 @@ These open from perks once a dynasty file is loaded.
   yours.
 
 #### Position Coach
-- Pick a player, then any position (CFB25 PositionE enum, e.g. QB → WR → KR).
+- Pick a player, then any position (CFB27 PositionE enum, e.g. QB → WR → KR).
 
 #### Fifth Year
 - Pick a player to get one extra year of eligibility (FR → SO → JR → SR → GR).
