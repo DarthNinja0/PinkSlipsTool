@@ -1,27 +1,35 @@
 <UserControl x:Class="PinkSlipsTool.Views.WheelPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Width="480">
+             Width="480" VerticalAlignment="Stretch">
   <Border x:Name="WheelCard" Background="#2A2A2A" CornerRadius="8" Padding="15"
-          BorderBrush="#FF4FA3" BorderThickness="1" VerticalAlignment="Top">
-    <StackPanel>
-      <TextBlock Text="★ PINK SLIPS WHEEL ★" FontFamily="Impact" FontSize="28"
-                 Foreground="#FF4FA3" HorizontalAlignment="Center" Margin="0,0,0,8" />
+          BorderBrush="#FF4FA3" BorderThickness="1" VerticalAlignment="Stretch">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
 
-      <!-- Wheel container: rotating canvas + fixed pointer/hub overlays -->
-      <Grid Width="450" Height="450"
-            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,10,0,10">
-        <Canvas x:Name="WheelContent" Width="450" Height="450" ClipToBounds="True">
-          <!-- Slices and labels drawn in code-behind -->
-        </Canvas>
-        <Canvas Width="450" Height="450" IsHitTestVisible="False">
-          <Polygon Points="215,0 235,0 225,20" Fill="White" Stroke="Black" StrokeThickness="1" />
-        </Canvas>
-        <Canvas x:Name="HubOverlay" Width="450" Height="450" IsHitTestVisible="False" />
-      </Grid>
+      <TextBlock Text="★ PINK SLIPS WHEEL ★" FontFamily="Impact" FontSize="28"
+                 Foreground="#FF4FA3" HorizontalAlignment="Center" Grid.Row="0" />
+
+      <!-- Wheel scales to fit available space while keeping its aspect ratio -->
+      <Viewbox Grid.Row="1" Stretch="Uniform" Margin="0,8" HorizontalAlignment="Stretch">
+        <Grid Width="450" Height="450">
+          <Canvas x:Name="WheelContent" Width="450" Height="450" ClipToBounds="True">
+            <!-- Slices and labels drawn in code-behind -->
+          </Canvas>
+          <Canvas Width="450" Height="450" IsHitTestVisible="False">
+            <Polygon Points="215,0 235,0 225,20" Fill="White" Stroke="Black" StrokeThickness="1" />
+          </Canvas>
+          <Canvas x:Name="HubOverlay" Width="450" Height="450" IsHitTestVisible="False" />
+        </Grid>
+      </Viewbox>
 
       <!-- Result Banner -->
-      <Border x:Name="ResultBanner" Background="#FF4FA3"
+      <Border x:Name="ResultBanner" Grid.Row="2" Background="#FF4FA3"
               CornerRadius="8" Padding="15,8" Margin="40,0"
               Visibility="Collapsed">
         <TextBlock x:Name="ResultText" FontSize="20" FontWeight="Bold"
@@ -29,7 +37,7 @@
       </Border>
 
       <!-- Spin / Apply Button -->
-      <Grid Margin="0,15,0,0">
+      <Grid Grid.Row="3" Margin="0,15,0,0">
         <Button x:Name="SpinButton" Content="CLICK TO SPIN"
                 Background="#FF4FA3" Foreground="White"
                 FontWeight="Bold" FontSize="20" Width="250" Height="55"
@@ -41,6 +49,6 @@
                 HorizontalAlignment="Center" Visibility="Collapsed"
                 Click="ApplyButton_Click" />
       </Grid>
-    </StackPanel>
+    </Grid>
   </Border>
 </UserControl>

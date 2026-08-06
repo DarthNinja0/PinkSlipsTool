@@ -20,7 +20,7 @@
 
     <!-- Header Banner -->
     <Image Source="Images/PinkSlipsHeader.png" Grid.Row="0"
-           Stretch="Uniform" MaxHeight="170" Margin="0,0,0,5" HorizontalAlignment="Stretch" />
+           Stretch="Uniform" MaxHeight="120" Margin="0,0,0,5" HorizontalAlignment="Stretch" />
     <TextBlock Text="C4's Dynasty Challenge Tool" Style="{StaticResource SubtitleText}" Grid.Row="1" Margin="0,0,0,10" />
 
     <!-- Status -->
@@ -231,14 +231,10 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- Right: Wheel panel - only shown when the window is maximized -->
-      <ScrollViewer x:Name="WheelColumn" Grid.Column="1"
-                    VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                    Margin="0,5,0,5" Visibility="Collapsed">
-        <views:WheelPanel x:Name="WheelPanelControl"
-                          SpinAvailable="{Binding ShowWheelIcon}"
-                          PerkApplied="WheelPanel_PerkApplied" />
-      </ScrollViewer>
+      <!-- Right: Wheel panel - only shown when the window is maximized; wheel scales to fit -->
+      <views:WheelPanel x:Name="WheelPanelControl" Grid.Column="1" Margin="0,5,0,5"
+                        SpinAvailable="{Binding ShowWheelIcon}"
+                        PerkApplied="WheelPanel_PerkApplied" />
     </Grid>
 
     <!-- File Management Bar (always visible at bottom) -->

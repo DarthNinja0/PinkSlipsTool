@@ -31,7 +31,7 @@ public partial class MainWindow : Window
 
     private void UpdateWheelVisibility()
     {
-        WheelColumn.Visibility = WindowState == WindowState.Maximized
+        WheelPanelControl.Visibility = WindowState == WindowState.Maximized
             ? Visibility.Visible
             : Visibility.Collapsed;
     }
