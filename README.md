@@ -19,10 +19,17 @@ dynasty save file directly — steal players, upgrade dev traits, and more.
 
 ## Getting Started
 
-> **⚠️ Play the week's game in CFB25 first.** The save you load must be from *after* you played
-> the week's game. This tool edits that save, so any roster moves, dev-trait changes, injuries,
-> etc. apply to the current week and persist. Loading and editing a stale save can be overwritten
-> by the game or lose progress.
+> **⚠️ Important — prepare your save in CFB25 first, in this order:**
+>
+> 1. **Play the week's game.**
+> 2. **Save your dynasty** in the game menu.
+> 3. **Back out of dynasty mode** (return to the main CFB25 menu) so the game is not holding the
+>    save file open — the tool and the game must never edit it at the same time.
+> 4. Now open Pink Slips Tool and **Load Dynasty File**.
+>
+> The save you load must be from *after* you played the week's game. This tool edits that save, so
+> any roster moves, dev-trait changes, injuries, etc. apply to the current week and persist.
+> Loading and editing a stale save can be overwritten by the game or lose progress.
 
 1. Launch Pink Slips Tool.
 2. Click **Load Dynasty File** and pick your save from the saves folder
