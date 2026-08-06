@@ -12,6 +12,7 @@ public partial class InjuryPopup : Window
     private readonly int _userTeamIndex;
     private readonly Mode _mode;
     private readonly Random _rng = new();
+    private List<PlayerData> _players;
     private PlayerData _selectedPlayer;
 
     public InjuryPopup(DynastyFile dynasty, Mode mode = Mode.Injure)
@@ -60,7 +61,8 @@ public partial class InjuryPopup : Window
 
         var players = _editor.GetPlayersByTeam(_userTeamIndex);
         if (_mode == Mode.Heal) players = players.Where(p => p.IsInjured).ToList();
-        PlayerListBox.ItemsSource = players;
+        _players = players;
+        PlayerListBox.ItemsSource = _players;
         RosterHeader.Text = $"YOUR ROSTER — {_editor.GetTeamName(_userTeamIndex)} ({players.Count} players)";
         PlayerCountText.Text = $"{players.Count} players";
         if (players.Count == 0)
@@ -83,6 +85,9 @@ public partial class InjuryPopup : Window
                 : "Select one of your players to injure";
         }
     }
+
+    private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        PlayerSorter.Apply(SortBox, PlayerListBox, _players);
 
     private void PlayerList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

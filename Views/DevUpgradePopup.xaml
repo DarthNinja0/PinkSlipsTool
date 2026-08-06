@@ -19,6 +19,15 @@
       <StackPanel>
         <TextBlock x:Name="HeaderText" Text="YOUR ROSTER" Foreground="#FF4FA3"
                    FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+          <TextBlock Text="Sort:" Foreground="#888" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+          <ComboBox x:Name="SortBox" Width="110" Background="#1A1A1A" Foreground="White"
+                    SelectionChanged="SortBox_SelectionChanged" SelectedIndex="0">
+            <ComboBoxItem Content="OVR"/>
+            <ComboBoxItem Content="Name"/>
+            <ComboBoxItem Content="Position"/>
+          </ComboBox>
+        </StackPanel>
         <ListBox x:Name="PlayerListBox" Background="#1A1A1A" Foreground="White"
                  BorderThickness="0" SelectionChanged="PlayerList_SelectionChanged"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"

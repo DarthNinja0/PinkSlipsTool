@@ -27,11 +27,21 @@
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
           <TextBlock x:Name="YourRosterHeader" Text="YOUR ROSTER" Foreground="#FF4FA3" FontSize="12"
                      FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-          <ListBox x:Name="YourRosterBox" Grid.Row="1" Background="#1A1A1A" Foreground="White"
+          <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+            <TextBlock Text="Sort:" Foreground="#888" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="SortBox" Width="110" Background="#1A1A1A" Foreground="White"
+                      SelectionChanged="SortBox_SelectionChanged" SelectedIndex="0">
+              <ComboBoxItem Content="OVR"/>
+              <ComboBoxItem Content="Name"/>
+              <ComboBoxItem Content="Position"/>
+            </ComboBox>
+          </StackPanel>
+          <ListBox x:Name="YourRosterBox" Grid.Row="2" Background="#1A1A1A" Foreground="White"
                    BorderThickness="0" SelectionChanged="YourRoster_SelectionChanged"
                    ScrollViewer.VerticalScrollBarVisibility="Visible"
                    FontFamily="Consolas" FontSize="12">

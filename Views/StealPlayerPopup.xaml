@@ -53,12 +53,22 @@
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <TextBlock x:Name="RosterHeader" Text="ROSTER" Foreground="#FF4FA3" FontSize="12"
                      FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-          <ListBox x:Name="PlayerListBox" Grid.Row="1" Background="#1A1A1A" Foreground="White"
+          <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+            <TextBlock Text="Sort:" Foreground="#888" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="PlayerSortBox" Width="110" Background="#1A1A1A" Foreground="White"
+                      SelectionChanged="PlayerSortBox_SelectionChanged" SelectedIndex="0">
+              <ComboBoxItem Content="OVR"/>
+              <ComboBoxItem Content="Name"/>
+              <ComboBoxItem Content="Position"/>
+            </ComboBox>
+          </StackPanel>
+          <ListBox x:Name="PlayerListBox" Grid.Row="2" Background="#1A1A1A" Foreground="White"
                    BorderThickness="0" SelectionChanged="PlayerList_SelectionChanged"
                    ScrollViewer.VerticalScrollBarVisibility="Visible"
                    FontFamily="Consolas" FontSize="12">
@@ -68,7 +78,7 @@
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
-          <TextBlock x:Name="PlayerCountText" Grid.Row="2" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
+          <TextBlock x:Name="PlayerCountText" Grid.Row="3" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
         </Grid>
       </Border>
 
@@ -79,15 +89,25 @@
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <TextBlock x:Name="YourRosterHeader" Text="YOUR ROSTER — PICK CUT" Foreground="#FF4FA3"
                      FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-          <TextBlock x:Name="SwapHintText" Grid.Row="1" Text="Select a player to swap out (or cut if your roster is full)."
+          <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+            <TextBlock Text="Sort:" Foreground="#888" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="YourSortBox" Width="110" Background="#1A1A1A" Foreground="White"
+                      SelectionChanged="YourSortBox_SelectionChanged" SelectedIndex="0">
+              <ComboBoxItem Content="OVR"/>
+              <ComboBoxItem Content="Name"/>
+              <ComboBoxItem Content="Position"/>
+            </ComboBox>
+          </StackPanel>
+          <TextBlock x:Name="SwapHintText" Grid.Row="2" Text="Select a player to swap out (or cut if your roster is full)."
                      Foreground="#888" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"/>
-          <ListBox x:Name="YourRosterBox" Grid.Row="2" Background="#1A1A1A" Foreground="White"
+          <ListBox x:Name="YourRosterBox" Grid.Row="3" Background="#1A1A1A" Foreground="White"
                    BorderThickness="0" SelectionChanged="YourRosterList_SelectionChanged"
                    ScrollViewer.VerticalScrollBarVisibility="Visible"
                    FontFamily="Consolas" FontSize="12">
@@ -97,8 +117,8 @@
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
-          <TextBlock x:Name="YourRosterCountText" Grid.Row="3" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
-          <StackPanel Grid.Row="4" Margin="0,8,0,0">
+          <TextBlock x:Name="YourRosterCountText" Grid.Row="4" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
+          <StackPanel Grid.Row="5" Margin="0,8,0,0">
             <Button x:Name="TransferButton" Content="TRANSFER (SWAP TEAMS)" IsEnabled="False"
                     Style="{StaticResource PinkButton}" FontSize="13" Padding="12,7" Margin="0,0,0,6"
                     Click="TransferButton_Click" />

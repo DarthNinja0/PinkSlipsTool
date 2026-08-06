@@ -8,6 +8,7 @@ public partial class PositionCoachPopup : Window
 {
     private readonly DynastyEditor _editor;
     private readonly int _userTeamIndex;
+    private List<PlayerData> _players;
     private PlayerData _selectedPlayer;
     private (int Value, string Name)? _selectedPosition;
 
@@ -22,12 +23,15 @@ public partial class PositionCoachPopup : Window
 
     private void LoadRoster()
     {
-        var players = _editor.GetPlayersByTeam(_userTeamIndex);
-        YourRosterBox.ItemsSource = players;
-        YourRosterHeader.Text = $"YOUR ROSTER — {_editor.GetTeamName(_userTeamIndex)} ({players.Count} players)";
-        if (players.Count == 0)
+        _players = _editor.GetPlayersByTeam(_userTeamIndex);
+        YourRosterBox.ItemsSource = _players;
+        YourRosterHeader.Text = $"YOUR ROSTER — {_editor.GetTeamName(_userTeamIndex)} ({_players.Count} players)";
+        if (_players.Count == 0)
             StatusText.Text = "No players found. " + _editor.DiagnosticInfo();
     }
+
+    private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        PlayerSorter.Apply(SortBox, YourRosterBox, _players);
 
     private void YourRoster_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

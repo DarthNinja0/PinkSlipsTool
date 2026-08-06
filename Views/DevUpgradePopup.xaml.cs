@@ -9,6 +9,7 @@ public partial class DevUpgradePopup : Window
     private readonly DynastyEditor _editor;
     private readonly int _userTeamIndex;
     private readonly bool _downgrade;
+    private List<PlayerData> _players;
     private PlayerData _selectedPlayer;
 
     public DevUpgradePopup(DynastyFile dynasty, bool downgrade = false)
@@ -36,13 +37,16 @@ public partial class DevUpgradePopup : Window
         }
 
         var teamName = _editor.GetTeamName(_userTeamIndex);
-        var players = _editor.GetPlayersByTeam(_userTeamIndex);
-        PlayerListBox.ItemsSource = players;
-        HeaderText.Text = $"YOUR ROSTER — {teamName} ({players.Count} players)";
-        CountText.Text = $"{players.Count} players on roster";
-        if (players.Count == 0)
+        _players = _editor.GetPlayersByTeam(_userTeamIndex);
+        PlayerListBox.ItemsSource = _players;
+        HeaderText.Text = $"YOUR ROSTER — {teamName} ({_players.Count} players)";
+        CountText.Text = $"{_players.Count} players on roster";
+        if (_players.Count == 0)
             StatusText.Text = "No players found for your team. " + _editor.DiagnosticInfo();
     }
+
+    private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        PlayerSorter.Apply(SortBox, PlayerListBox, _players);
 
     private void PlayerList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

@@ -12,6 +12,7 @@ public partial class StealPlayerPopup : Window
     private PlayerData _swapOutPlayer;
     private List<(int TeamIdx, string Name, int Count)> _teams;
     private List<PlayerData> _yourRoster;
+    private List<PlayerData> _currentRoster;
 
     public StealPlayerPopup(DynastyFile dynasty)
     {
@@ -71,11 +72,18 @@ public partial class StealPlayerPopup : Window
         }
 
         var players = _editor.GetPlayersByTeam(teamIdx);
+        _currentRoster = players;
         PlayerListBox.ItemsSource = players;
         RosterHeader.Text = $"ROSTER — {_editor.GetTeamName(teamIdx)} ({players.Count} players)";
         PlayerCountText.Text = $"{players.Count} players";
         StatusText.Text = $"Select a player from {_editor.GetTeamName(teamIdx)} to steal";
     }
+
+    private void PlayerSortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        PlayerSorter.Apply(PlayerSortBox, PlayerListBox, _currentRoster);
+
+    private void YourSortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        PlayerSorter.Apply(YourSortBox, YourRosterBox, _yourRoster);
 
     private void PlayerList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

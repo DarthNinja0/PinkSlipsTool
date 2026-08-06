@@ -1,7 +1,7 @@
 <Window x:Class="PinkSlipsTool.FreeAgentPopup"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="FA Sign" Height="540" Width="600"
+        Title="FA Sign" Height="580" Width="900"
         WindowStyle="ToolWindow" ResizeMode="NoResize"
         Background="#1A1A1A" WindowStartupLocation="CenterOwner">
   <Grid Margin="15">
@@ -11,28 +11,84 @@
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <TextBlock Grid.Row="0" Text="Select a free agent to sign to your team:"
-               Foreground="#FFD700" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" />
+    <TextBlock Grid.Row="0" Text="Select a free agent to sign. If your roster is full, pick a player to cut to make room:"
+               Foreground="#FFD700" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap" />
 
-    <Border Grid.Row="1" Background="#2A2A2A" CornerRadius="6" Padding="10"
-            BorderBrush="#555" BorderThickness="1">
-      <StackPanel>
-        <TextBlock x:Name="HeaderText" Text="FREE AGENTS" Foreground="#FF4FA3"
-                   FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-        <ListBox x:Name="FaListBox" Background="#1A1A1A" Foreground="White"
-                 BorderThickness="0" SelectionChanged="FaList_SelectionChanged"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                 FontFamily="Consolas" FontSize="13" Height="360">
-          <ListBox.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding Display}" Foreground="White" Padding="3,2"/>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-        <TextBlock x:Name="CountText" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
-      </StackPanel>
-    </Border>
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="14"/>
+        <ColumnDefinition Width="320"/>
+      </Grid.ColumnDefinitions>
 
+      <!-- Free agents -->
+      <Border Grid.Column="0" Background="#2A2A2A" CornerRadius="6" Padding="8"
+              BorderBrush="#555" BorderThickness="1">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <TextBlock x:Name="HeaderText" Text="FREE AGENTS" Foreground="#FF4FA3" FontSize="12"
+                     FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+          <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+            <TextBlock Text="Sort:" Foreground="#888" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="FaSortBox" Width="110" Background="#1A1A1A" Foreground="White"
+                      SelectionChanged="FaSortBox_SelectionChanged" SelectedIndex="0">
+              <ComboBoxItem Content="OVR"/>
+              <ComboBoxItem Content="Name"/>
+              <ComboBoxItem Content="Position"/>
+            </ComboBox>
+          </StackPanel>
+          <ListBox x:Name="FaListBox" Grid.Row="2" Background="#1A1A1A" Foreground="White"
+                   BorderThickness="0" SelectionChanged="FaList_SelectionChanged"
+                   ScrollViewer.VerticalScrollBarVisibility="Visible"
+                   FontFamily="Consolas" FontSize="12">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Display}" Foreground="White" Padding="2,1"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <!-- Your roster (cut target when full) -->
+      <Border Grid.Column="2" Background="#2A2A2A" CornerRadius="6" Padding="8"
+              BorderBrush="#FF4FA3" BorderThickness="1">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <TextBlock x:Name="YourRosterHeader" Text="YOUR ROSTER" Foreground="#FF4FA3" FontSize="12"
+                     FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+          <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+            <TextBlock Text="Sort:" Foreground="#888" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="YourSortBox" Width="110" Background="#1A1A1A" Foreground="White"
+                      SelectionChanged="YourSortBox_SelectionChanged" SelectedIndex="0">
+              <ComboBoxItem Content="OVR"/>
+              <ComboBoxItem Content="Name"/>
+              <ComboBoxItem Content="Position"/>
+            </ComboBox>
+          </StackPanel>
+          <ListBox x:Name="YourRosterBox" Grid.Row="2" Background="#1A1A1A" Foreground="White"
+                   BorderThickness="0" SelectionChanged="YourRoster_SelectionChanged"
+                   ScrollViewer.VerticalScrollBarVisibility="Visible"
+                   FontFamily="Consolas" FontSize="12">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Display}" Foreground="White" Padding="2,1"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- Bottom bar -->
     <Border Grid.Row="2" Background="#222" CornerRadius="6" Padding="10" Margin="0,10,0,0"
             BorderBrush="#555" BorderThickness="1">
       <Grid>

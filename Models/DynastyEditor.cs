@@ -378,35 +378,25 @@ public class DynastyEditor
     private uint PlayerRef(int playerRecordIndex) =>
         (uint)((PlayerTableInfo.TableId << 17) | playerRecordIndex);
 
-    // All roster operations take the player's master team ID (coach TeamIndex, player
-    // field-272) and convert it to the roster array row via _masterToRow. Free agency
-    // (255) has no row, so RosterRowOf returns -1 and these become no-ops.
-    private bool IsRosterTeam(int masterId) =>
-        _rosterArray != null && RosterRowOf(masterId) >= 0;
-
-    private int FindRosterSlot(int masterId, int playerRecordIndex)
-    {
-        var row = RosterRowOf(masterId);
-        if (row < 0) return -1;
-        var size = _rosterArray.ReadArraySize(row);
-        var target = PlayerRef(playerRecordIndex);
-        for (var s = 0; s < size; s++)
-            if (_rosterArray.ReadArrayRowRef(row, s) == target) return s;
-        return -1;
-    }
-
+    // The ref for a player lives in exactly one roster row; the FA/FCS rows (owned by
+    // FreeAgentTeamIndex) are several, so scan every row instead of trusting the row map.
     private void RemoveFromRoster(int masterId, int playerRecordIndex)
     {
-        var row = RosterRowOf(masterId);
-        if (row < 0) return;
-        var size = _rosterArray.ReadArraySize(row);
-        var slot = FindRosterSlot(masterId, playerRecordIndex);
-        if (slot < 0 || slot >= size) return;
-        // Compact the list so the game sees no holes.
-        for (var s = slot; s < size - 1; s++)
-            _rosterArray.WriteArrayRowRef(row, s, _rosterArray.ReadArrayRowRef(row, s + 1));
-        _rosterArray.WriteArrayRowRef(row, size - 1, 0);
-        _rosterArray.WriteArraySize(row, size - 1);
+        var target = PlayerRef(playerRecordIndex);
+        for (var row = 0; row < _rosterArray.Header.RecordCount; row++)
+        {
+            var size = _rosterArray.ReadArraySize(row);
+            var slot = -1;
+            for (var s = 0; s < size; s++)
+                if (_rosterArray.ReadArrayRowRef(row, s) == target) { slot = s; break; }
+            if (slot < 0) continue;
+            // Compact the list so the game sees no holes.
+            for (var s = slot; s < size - 1; s++)
+                _rosterArray.WriteArrayRowRef(row, s, _rosterArray.ReadArrayRowRef(row, s + 1));
+            _rosterArray.WriteArrayRowRef(row, size - 1, 0);
+            _rosterArray.WriteArraySize(row, size - 1);
+            return;
+        }
     }
 
     private void AddToRoster(int masterId, int playerRecordIndex)
