@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:conv="clr-namespace:PinkSlipsTool.Converters"
-        Title="Pink Slips Tool" Height="850" Width="650"
+        xmlns:views="clr-namespace:PinkSlipsTool.Views"
+        Title="Pink Slips Tool" Height="920" Width="1300" MinWidth="880" MinHeight="760"
         Background="#1A1A1A" WindowStartupLocation="CenterScreen">
   <Window.Resources>
     <conv:BoolToVisibilityConverter x:Key="BoolVis" />
@@ -12,14 +13,13 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
     <!-- Header Banner -->
     <Image Source="Images/PinkSlipsHeader.png" Grid.Row="0"
-           MaxWidth="600" MaxHeight="120" Stretch="Uniform" Margin="0,0,0,5" HorizontalAlignment="Center" />
+           Height="140" Stretch="UniformToFill" Margin="0,0,0,5" HorizontalAlignment="Stretch" />
     <TextBlock Text="C4's Dynasty Challenge Tool" Style="{StaticResource SubtitleText}" Grid.Row="1" Margin="0,0,0,10" />
 
     <!-- Status -->
@@ -53,182 +53,179 @@
       </TextBlock>
     </Border>
 
-    <!-- Star Counter HUD -->
-    <Border Grid.Row="3" Background="#2A2A2A" CornerRadius="8" Padding="15" Margin="0,5"
-            BorderBrush="#FFD700" BorderThickness="1">
-      <StackPanel>
-        <TextBlock Text="STARS EARNED" FontSize="12" Foreground="#FFD700"
-                   HorizontalAlignment="Center" FontWeight="Bold" />
-        <ProgressBar Minimum="0" Maximum="10"
-                     Value="{Binding StarsEarned}" Style="{StaticResource StarProgressBar}"
-                     Margin="0,8" />
-        <TextBlock Text="{Binding StarsString}"
-                   FontSize="18" HorizontalAlignment="Center" Foreground="#FFD700" />
-      </StackPanel>
-    </Border>
+    <!-- Main two-column content -->
+    <Grid Grid.Row="3" Margin="0,5,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" MinWidth="360"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
 
-    <!-- Scrollable content: Input Form + Conditions + Perk Shop + Wheel -->
-    <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" Margin="0,5">
-      <StackPanel>
-        <!-- Manual Stats Input Form -->
-        <Border Background="#2A2A2A" CornerRadius="8" Padding="15"
-                BorderBrush="#FF4FA3" BorderThickness="1">
-          <StackPanel>
-            <TextBlock Text="GAME INPUT" FontSize="14" Foreground="#FF4FA3"
-                       FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10" />
+      <!-- Left: Scrollable Input Form + Perk Shop -->
+      <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,5,10,5">
+        <StackPanel>
+          <!-- Manual Stats Input Form -->
+          <Border Background="#2A2A2A" CornerRadius="8" Padding="15"
+                  BorderBrush="#FF4FA3" BorderThickness="1">
+            <StackPanel>
+              <TextBlock Text="GAME INPUT" FontSize="14" Foreground="#FF4FA3"
+                         FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10" />
 
-            <!-- Score Row -->
-            <Border Background="#333" CornerRadius="6" Padding="10" Margin="0,0,0,8">
-              <Grid>
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                  <TextBlock Text="Your Score" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <TextBox Text="{Binding YourScore}" Width="60" HorizontalAlignment="Center"
-                           Style="{StaticResource StatInput}" />
-                </StackPanel>
-                <TextBlock Grid.Column="1" Text="-" Foreground="#FFD700" FontSize="24"
-                           FontWeight="Bold" VerticalAlignment="Center" Margin="5,10,5,0" />
-                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                  <TextBlock Text="Opponent" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <TextBox Text="{Binding OpponentScore}" Width="60" HorizontalAlignment="Center"
-                           Style="{StaticResource StatInput}" />
-                </StackPanel>
-                <StackPanel Grid.Column="4" HorizontalAlignment="Center" Margin="10,0,0,0">
-                  <TextBlock Text="TO Diff" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <TextBox Text="{Binding TurnoverDiff}" Width="50" HorizontalAlignment="Center"
-                           Style="{StaticResource StatInput}" />
-                </StackPanel>
-              </Grid>
-            </Border>
-
-            <!-- Offense Section -->
-            <TextBlock Text="— OFFENSE —" Foreground="#FFD700" FontSize="12"
-                       FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6" />
-            <Border Background="#333" CornerRadius="6" Padding="10" Margin="0,0,0,8">
-              <Grid>
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                  <TextBlock Text="Pass Yds / TD" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBox Text="{Binding PassYards}" Width="55" Style="{StaticResource StatInput}" />
-                    <TextBlock Text="/" Foreground="#888" FontSize="16" Margin="3,0" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding PassTDs}" Width="40" Style="{StaticResource StatInput}" />
+              <!-- Score Row -->
+              <Border Background="#333" CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                    <TextBlock Text="Your Score" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <TextBox Text="{Binding YourScore}" Width="60" HorizontalAlignment="Center"
+                             Style="{StaticResource StatInput}" />
                   </StackPanel>
-                </StackPanel>
-                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                  <TextBlock Text="Rush Yds / TD" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBox Text="{Binding RushYards}" Width="55" Style="{StaticResource StatInput}" />
-                    <TextBlock Text="/" Foreground="#888" FontSize="16" Margin="3,0" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding RushTDs}" Width="40" Style="{StaticResource StatInput}" />
+                  <TextBlock Grid.Column="1" Text="-" Foreground="#FFD700" FontSize="24"
+                             FontWeight="Bold" VerticalAlignment="Center" Margin="5,10,5,0" />
+                  <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                    <TextBlock Text="Opponent" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <TextBox Text="{Binding OpponentScore}" Width="60" HorizontalAlignment="Center"
+                             Style="{StaticResource StatInput}" />
                   </StackPanel>
-                </StackPanel>
-                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                  <TextBlock Text="Rec" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <TextBox Text="{Binding RecYards}" Width="55" Style="{StaticResource StatInput}" />
-                </StackPanel>
-              </Grid>
-            </Border>
+                  <StackPanel Grid.Column="4" HorizontalAlignment="Center" Margin="10,0,0,0">
+                    <TextBlock Text="TO Diff" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <TextBox Text="{Binding TurnoverDiff}" Width="50" HorizontalAlignment="Center"
+                             Style="{StaticResource StatInput}" />
+                  </StackPanel>
+                </Grid>
+              </Border>
 
-            <!-- Defense Section -->
-            <TextBlock Text="— DEFENSE / SPECIAL TEAMS —" Foreground="#FFD700" FontSize="12"
-                       FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6" />
-            <Border Background="#333" CornerRadius="6" Padding="10" Margin="0,0,0,10">
-              <Grid>
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                  <TextBlock Text="Sacks" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <TextBox Text="{Binding Sacks}" Width="50" HorizontalAlignment="Center"
-                           Style="{StaticResource StatInput}" />
-                </StackPanel>
-                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                  <TextBlock Text="INTs" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <TextBox Text="{Binding Ints}" Width="50" HorizontalAlignment="Center"
-                           Style="{StaticResource StatInput}" />
-                </StackPanel>
-                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                  <TextBlock Text="Def TD" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <TextBox Text="{Binding DefTDs}" Width="50" HorizontalAlignment="Center"
-                           Style="{StaticResource StatInput}" />
-                </StackPanel>
-                <StackPanel Grid.Column="3" HorizontalAlignment="Center">
-                  <TextBlock Text="ST TD" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
-                  <TextBox Text="{Binding StTDs}" Width="50" HorizontalAlignment="Center"
-                           Style="{StaticResource StatInput}" />
-                </StackPanel>
-              </Grid>
-            </Border>
-
-            <!-- Calculate Button -->
-            <Button Content="CALCULATE STARS" Style="{StaticResource PinkButton}"
-                    Width="280" HorizontalAlignment="Center"
-                    Command="{Binding CalculateStarsCommand}" />
-
-            <!-- Conditions Output -->
-            <Border Background="#1A1A1A" CornerRadius="6" Padding="10" Margin="0,10,0,0"
-                    Visibility="{Binding HasData, Converter={StaticResource BoolVis}}">
-              <TextBlock Text="{Binding ConditionsText}"
-                         Foreground="#FFD700" FontSize="13" />
-            </Border>
-          </StackPanel>
-        </Border>
-
-        <!-- Perk Shop + Wheel -->
-        <Border Background="#2A2A2A" CornerRadius="8" Padding="10" Margin="0,8,0,0"
-                BorderBrush="#FF4FA3" BorderThickness="1"
-                Visibility="{Binding HasData, Converter={StaticResource BoolVis}}">
-          <StackPanel>
-            <TextBlock Text="PERK SHOP" FontSize="14" Foreground="#FF4FA3"
-                       FontWeight="Bold" HorizontalAlignment="Center" />
-
-            <ItemsControl ItemsSource="{Binding AvailablePerks}" Margin="0,5">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Border Style="{StaticResource PerkItem}" Width="150">
-                    <StackPanel>
-                      <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White" FontSize="13" />
-                      <TextBlock Text="{Binding Description}" Foreground="#AAA" FontSize="11" TextWrapping="Wrap" />
-                      <TextBlock Text="{Binding StarCost, StringFormat='⭐ {0}'}" Foreground="#FFD700" FontSize="12" Margin="0,4,0,0" />
-                      <Button Content="BUY" Style="{StaticResource PinkButton}" FontSize="12"
-                              Padding="10,4" Margin="0,4,0,0" Height="28"
-                              Command="{Binding DataContext.SpendStarsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                              CommandParameter="{Binding}" />
+              <!-- Offense Section -->
+              <TextBlock Text="— OFFENSE —" Foreground="#FFD700" FontSize="12"
+                         FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6" />
+              <Border Background="#333" CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                    <TextBlock Text="Pass Yds / TD" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                      <TextBox Text="{Binding PassYards}" Width="55" Style="{StaticResource StatInput}" />
+                      <TextBlock Text="/" Foreground="#888" FontSize="16" Margin="3,0" VerticalAlignment="Center"/>
+                      <TextBox Text="{Binding PassTDs}" Width="40" Style="{StaticResource StatInput}" />
                     </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                    <TextBlock Text="Rush Yds / TD" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                      <TextBox Text="{Binding RushYards}" Width="55" Style="{StaticResource StatInput}" />
+                      <TextBlock Text="/" Foreground="#888" FontSize="16" Margin="3,0" VerticalAlignment="Center"/>
+                      <TextBox Text="{Binding RushTDs}" Width="40" Style="{StaticResource StatInput}" />
+                    </StackPanel>
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                    <TextBlock Text="Rec" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <TextBox Text="{Binding RecYards}" Width="55" Style="{StaticResource StatInput}" />
+                  </StackPanel>
+                </Grid>
+              </Border>
 
-            <Button x:Name="WheelButton" Content="🎡 SPIN WHEEL" Style="{StaticResource PinkButton}"
-                    Width="200" HorizontalAlignment="Center" Margin="0,8,0,0"
-                    Click="WheelButton_Click" />
-          </StackPanel>
-        </Border>
-      </StackPanel>
-    </ScrollViewer>
+              <!-- Defense Section -->
+              <TextBlock Text="— DEFENSE / SPECIAL TEAMS —" Foreground="#FFD700" FontSize="12"
+                         FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6" />
+              <Border Background="#333" CornerRadius="6" Padding="10" Margin="0,0,0,10">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                    <TextBlock Text="Sacks" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <TextBox Text="{Binding Sacks}" Width="50" HorizontalAlignment="Center"
+                             Style="{StaticResource StatInput}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                    <TextBlock Text="INTs" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <TextBox Text="{Binding Ints}" Width="50" HorizontalAlignment="Center"
+                             Style="{StaticResource StatInput}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                    <TextBlock Text="Def TD" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <TextBox Text="{Binding DefTDs}" Width="50" HorizontalAlignment="Center"
+                             Style="{StaticResource StatInput}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="3" HorizontalAlignment="Center">
+                    <TextBlock Text="ST TD" Foreground="#AAA" FontSize="11" HorizontalAlignment="Center"/>
+                    <TextBox Text="{Binding StTDs}" Width="50" HorizontalAlignment="Center"
+                             Style="{StaticResource StatInput}" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+
+              <!-- Calculate Button -->
+              <Button Content="CALCULATE STARS" Style="{StaticResource PinkButton}"
+                      Width="280" HorizontalAlignment="Center"
+                      Command="{Binding CalculateStarsCommand}" />
+
+              <!-- Conditions Output -->
+              <Border Background="#1A1A1A" CornerRadius="6" Padding="10" Margin="0,10,0,0"
+                      Visibility="{Binding HasData, Converter={StaticResource BoolVis}}">
+                <TextBlock Text="{Binding ConditionsText}"
+                           Foreground="#FFD700" FontSize="13" />
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <!-- Perk Shop -->
+          <Border Background="#2A2A2A" CornerRadius="8" Padding="10" Margin="0,8,0,0"
+                  BorderBrush="#FF4FA3" BorderThickness="1"
+                  Visibility="{Binding HasData, Converter={StaticResource BoolVis}}">
+            <StackPanel>
+              <TextBlock Text="PERK SHOP" FontSize="14" Foreground="#FF4FA3"
+                         FontWeight="Bold" HorizontalAlignment="Center" />
+
+              <ItemsControl ItemsSource="{Binding AvailablePerks}" Margin="0,5">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Style="{StaticResource PerkItem}" Width="150">
+                      <StackPanel>
+                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White" FontSize="13" />
+                        <TextBlock Text="{Binding Description}" Foreground="#AAA" FontSize="11" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding StarCost, StringFormat='⭐ {0}'}" Foreground="#FFD700" FontSize="12" Margin="0,4,0,0" />
+                        <Button Content="BUY" Style="{StaticResource PinkButton}" FontSize="12"
+                                Padding="10,4" Margin="0,4,0,0" Height="28"
+                                Command="{Binding DataContext.SpendStarsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Right: Wheel panel (always visible, enabled after a spin is earned) -->
+      <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,5,0,5">
+        <views:WheelPanel x:Name="WheelPanelControl"
+                          SpinAvailable="{Binding ShowWheelIcon}"
+                          PerkApplied="WheelPanel_PerkApplied" />
+      </ScrollViewer>
+    </Grid>
 
     <!-- File Management Bar (always visible at bottom) -->
-    <Border Grid.Row="5" Background="#222" CornerRadius="6" Padding="8" Margin="0,5"
+    <Border Grid.Row="4" Background="#222" CornerRadius="6" Padding="8" Margin="0,5"
             BorderBrush="#555" BorderThickness="1">
       <Grid>
         <Grid.ColumnDefinitions>
@@ -256,7 +253,7 @@
     </Border>
 
     <!-- Save Toast Overlay -->
-    <Border x:Name="SaveToast" Grid.RowSpan="6" Panel.ZIndex="100"
+    <Border x:Name="SaveToast" Grid.RowSpan="5" Panel.ZIndex="100"
             Background="#0D2E1F" CornerRadius="10" Padding="18,12"
             BorderBrush="#00E676" BorderThickness="2"
             HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0"

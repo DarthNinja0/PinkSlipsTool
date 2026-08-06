@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -6,9 +7,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using PinkSlipsTool.Models;
 
-namespace PinkSlipsTool;
+namespace PinkSlipsTool.Views;
 
-public partial class PinkSlipsWheelPopup : Window
+public partial class WheelPanel : UserControl
 {
     private readonly Random _rng = new();
     private bool _isSpinning;
@@ -46,10 +47,48 @@ public partial class PinkSlipsWheelPopup : Window
 
     public PerkDef SelectedPerk { get; private set; }
 
-    public PinkSlipsWheelPopup()
+    public event Action<PerkDef> PerkApplied;
+
+    public static readonly DependencyProperty SpinAvailableProperty =
+        DependencyProperty.Register(nameof(SpinAvailable), typeof(bool), typeof(WheelPanel),
+            new PropertyMetadata(false, OnSpinAvailableChanged));
+
+    public bool SpinAvailable
+    {
+        get => (bool)GetValue(SpinAvailableProperty);
+        set => SetValue(SpinAvailableProperty, value);
+    }
+
+    private static void OnSpinAvailableChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var panel = (WheelPanel)d;
+        if ((bool)e.NewValue) panel.Reset();
+        panel.UpdateEnabled();
+    }
+
+    public WheelPanel()
     {
         InitializeComponent();
         DrawWheel();
+        UpdateEnabled();
+    }
+
+    private void UpdateEnabled()
+    {
+        SpinButton.IsEnabled = SpinAvailable;
+        WheelCard.Opacity = SpinAvailable ? 1.0 : 0.45;
+    }
+
+    public void Reset()
+    {
+        _isSpinning = false;
+        _hasSpun = false;
+        _selectedIndex = -1;
+        SelectedPerk = null;
+        SpinButton.IsEnabled = SpinAvailable;
+        ResultBanner.Visibility = Visibility.Collapsed;
+        ApplyButton.Visibility = Visibility.Collapsed;
+        WheelContent.RenderTransform = new RotateTransform { CenterX = 225, CenterY = 225, Angle = 0 };
     }
 
     private void DrawWheel()
@@ -202,7 +241,9 @@ public partial class PinkSlipsWheelPopup : Window
 
     private void ApplyButton_Click(object sender, RoutedEventArgs e)
     {
-        DialogResult = true;
-        Close();
+        if (SelectedPerk == null) return;
+        var perk = SelectedPerk;
+        Reset();
+        PerkApplied?.Invoke(perk);
     }
 }

@@ -185,7 +185,6 @@ public class MainViewModel : INotifyPropertyChanged
     public int StTDs { get => _stTDs; set { _stTDs = value; OnPropertyChanged(); } }
 
     public ICommand CalculateStarsCommand { get; }
-    public ICommand OpenWheelCommand { get; }
     public ICommand SpendStarsCommand { get; }
 
     // File management commands
@@ -196,7 +195,6 @@ public class MainViewModel : INotifyPropertyChanged
     public MainViewModel()
     {
         CalculateStarsCommand = new RelayCommand(CalculateStars, () => true);
-        OpenWheelCommand = new RelayCommand(OpenWheel, () => ShowWheelIcon);
         SpendStarsCommand = new RelayCommand<PerkDef>(ApplyPerk, p => _perks.CanAfford(p) && _perks.CanApply(p));
         LoadDynastyCommand = new RelayCommand(LoadDynasty, () => true);
         SaveDynastyCommand = new RelayCommand(SaveDynasty, () => IsDynastyLoaded && !IsSaving);
@@ -224,15 +222,7 @@ public class MainViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ShowWheelIcon));
     }
 
-    public void OpenWheel()
-    {
-        var popup = new PinkSlipsWheelPopup();
-        popup.Owner = Application.Current.MainWindow;
-        if (popup.ShowDialog() == true && popup.SelectedPerk != null)
-            ApplyWheelPerk(popup.SelectedPerk);
-    }
-
-    private void ApplyWheelPerk(PerkDef perk)
+    public void ApplyWheelPerk(PerkDef perk)
     {
         _perks.PerksApplied.Add(perk.Name);
         if (perk.NeedsDynastyFile) LaunchPerk(perk);

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using PinkSlipsTool.Models;
 using PinkSlipsTool.ViewModels;
 
 namespace PinkSlipsTool;
@@ -20,9 +21,9 @@ public partial class MainWindow : Window
         _vm.SaveCompleted += OnSaveCompleted;
     }
 
-    private void WheelButton_Click(object sender, RoutedEventArgs e)
+    private void WheelPanel_PerkApplied(PerkDef perk)
     {
-        _vm?.OpenWheel();
+        _vm?.ApplyWheelPerk(perk);
     }
 
     private void OnSaveCompleted(object sender, string message)
