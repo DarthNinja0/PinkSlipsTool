@@ -31,9 +31,11 @@ public partial class MainWindow : Window
 
     private void UpdateWheelVisibility()
     {
-        WheelPanelControl.Visibility = WindowState == WindowState.Maximized
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        var fullscreen = WindowState == WindowState.Maximized;
+        // In fullscreen the star bar is the header, so the image header + subtitle hide.
+        HeaderBanner.Visibility = fullscreen ? Visibility.Collapsed : Visibility.Visible;
+        SubtitleText.Visibility = fullscreen ? Visibility.Collapsed : Visibility.Visible;
+        WheelPanelControl.Visibility = fullscreen ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void WheelPanel_PerkApplied(PerkDef perk)
