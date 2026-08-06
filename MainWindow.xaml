@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:conv="clr-namespace:PinkSlipsTool.Converters"
         xmlns:views="clr-namespace:PinkSlipsTool.Views"
-        Title="Pink Slips Tool" Height="920" Width="1300" MinWidth="880" MinHeight="760"
+        Title="Pink Slips Tool" Height="800" Width="700"
         Background="#1A1A1A" WindowStartupLocation="CenterScreen">
   <Window.Resources>
     <conv:BoolToVisibilityConverter x:Key="BoolVis" />
@@ -13,13 +13,14 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
     <!-- Header Banner -->
     <Image Source="Images/PinkSlipsHeader.png" Grid.Row="0"
-           Height="140" Stretch="UniformToFill" Margin="0,0,0,5" HorizontalAlignment="Stretch" />
+           Stretch="Uniform" Margin="0,0,0,5" HorizontalAlignment="Stretch" />
     <TextBlock Text="C4's Dynasty Challenge Tool" Style="{StaticResource SubtitleText}" Grid.Row="1" Margin="0,0,0,10" />
 
     <!-- Status -->
@@ -53,8 +54,22 @@
       </TextBlock>
     </Border>
 
-    <!-- Main two-column content -->
-    <Grid Grid.Row="3" Margin="0,5,0,0">
+    <!-- Star Counter HUD -->
+    <Border Grid.Row="3" Background="#2A2A2A" CornerRadius="8" Padding="15" Margin="0,5"
+            BorderBrush="#FFD700" BorderThickness="1">
+      <StackPanel>
+        <TextBlock Text="STARS EARNED" FontSize="12" Foreground="#FFD700"
+                   HorizontalAlignment="Center" FontWeight="Bold" />
+        <ProgressBar Minimum="0" Maximum="10"
+                     Value="{Binding StarsEarned}" Style="{StaticResource StarProgressBar}"
+                     Margin="0,8" />
+        <TextBlock Text="{Binding StarsString}"
+                   FontSize="18" HorizontalAlignment="Center" Foreground="#FFD700" />
+      </StackPanel>
+    </Border>
+
+    <!-- Main content: single column in windowed mode; wheel appears on the right when maximized -->
+    <Grid Grid.Row="4" Margin="0,5,0,0">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" MinWidth="360"/>
         <ColumnDefinition Width="Auto"/>
@@ -216,8 +231,10 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- Right: Wheel panel (always visible, enabled after a spin is earned) -->
-      <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,5,0,5">
+      <!-- Right: Wheel panel - only shown when the window is maximized -->
+      <ScrollViewer x:Name="WheelColumn" Grid.Column="1"
+                    VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                    Margin="0,5,0,5" Visibility="Collapsed">
         <views:WheelPanel x:Name="WheelPanelControl"
                           SpinAvailable="{Binding ShowWheelIcon}"
                           PerkApplied="WheelPanel_PerkApplied" />
@@ -225,7 +242,7 @@
     </Grid>
 
     <!-- File Management Bar (always visible at bottom) -->
-    <Border Grid.Row="4" Background="#222" CornerRadius="6" Padding="8" Margin="0,5"
+    <Border Grid.Row="5" Background="#222" CornerRadius="6" Padding="8" Margin="0,5"
             BorderBrush="#555" BorderThickness="1">
       <Grid>
         <Grid.ColumnDefinitions>
@@ -253,7 +270,7 @@
     </Border>
 
     <!-- Save Toast Overlay -->
-    <Border x:Name="SaveToast" Grid.RowSpan="5" Panel.ZIndex="100"
+    <Border x:Name="SaveToast" Grid.RowSpan="6" Panel.ZIndex="100"
             Background="#0D2E1F" CornerRadius="10" Padding="18,12"
             BorderBrush="#00E676" BorderThickness="2"
             HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0"

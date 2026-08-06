@@ -19,6 +19,21 @@ public partial class MainWindow : Window
         _vm = new MainViewModel();
         DataContext = _vm;
         _vm.SaveCompleted += OnSaveCompleted;
+
+        // Keep the window on-screen regardless of display scaling: clamp to the work area.
+        var work = SystemParameters.WorkArea;
+        if (Width > work.Width) Width = work.Width - 24;
+        if (Height > work.Height) Height = work.Height - 24;
+
+        StateChanged += (s, e) => UpdateWheelVisibility();
+        UpdateWheelVisibility();
+    }
+
+    private void UpdateWheelVisibility()
+    {
+        WheelColumn.Visibility = WindowState == WindowState.Maximized
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void WheelPanel_PerkApplied(PerkDef perk)
