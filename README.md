@@ -48,7 +48,8 @@ dynasty save file directly — steal players, upgrade dev traits, and more.
 
 ### ⭐ Star Calculator
 
-Enter your final game stats and earn up to 10 stars:
+Enter your final game stats and earn up to 10 stars. Stats are entered **manually** — the tool
+does not read them from the game automatically (auto-reading is planned but not yet implemented):
 
 | Condition | Stars |
 |---|---|
