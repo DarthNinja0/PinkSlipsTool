@@ -20,7 +20,7 @@
 
     <!-- Header Banner -->
     <Image Source="Images/PinkSlipsHeader.png" Grid.Row="0"
-           Stretch="Uniform" Margin="0,0,0,5" HorizontalAlignment="Stretch" />
+           Stretch="Uniform" MaxHeight="170" Margin="0,0,0,5" HorizontalAlignment="Stretch" />
     <TextBlock Text="C4's Dynasty Challenge Tool" Style="{StaticResource SubtitleText}" Grid.Row="1" Margin="0,0,0,10" />
 
     <!-- Status -->
