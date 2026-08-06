@@ -19,11 +19,16 @@ dynasty save file directly — steal players, upgrade dev traits, and more.
 
 ## Getting Started
 
+> **⚠️ Play the week's game in CFB25 first.** The save you load must be from *after* you played
+> the week's game. This tool edits that save, so any roster moves, dev-trait changes, injuries,
+> etc. apply to the current week and persist. Loading and editing a stale save can be overwritten
+> by the game or lose progress.
+
 1. Launch Pink Slips Tool.
 2. Click **Load Dynasty File** and pick your save from the saves folder
    (e.g. `DYNASTY-TEST`).
 3. A backup is created automatically the moment you load — see *Backups* below.
-4. Enter your game stats and hit **Calculate Stars**, or open the wheel directly.
+4. Enter your game stats and hit **Calculate Stars**. A perfect game earns an instant wheel spin.
 5. Spend stars on perks, or use the file-editing tools on a loaded save.
 6. Click **💾 Save** when done, then load that save file in the game.
 
@@ -58,6 +63,11 @@ Enter your final game stats and earn up to 10 stars:
 
 Spin for a random perk (weighted odds — extra spins and weaker perks land more often). Each wheel
 result can be applied once.
+
+The wheel is built into the main window. **Maximize the window and the wheel appears in a right
+panel** (disabled until you earn a spin by calculating a game); it auto-scales to fit your screen.
+In windowed mode the wheel is hidden and the app shows just the main menu, with the stars bar as
+the header.
 
 ### 🛍️ Perk Shop
 
@@ -95,7 +105,7 @@ honor-system perks are applied by the league's honor system (not written to the 
 These open from perks once a dynasty file is loaded.
 
 #### Steal Player / Transfer / Cut
-- Pick any team, then a player.
+- Pick any team, then a player. All roster pickers include sort controls (OVR, name, position).
 - **STEAL** — moves the player to your team permanently. If your roster is at 85 (full), cut
   someone first to make room.
 - **TRANSFER** — swaps the selected player with one of your players, so **both rosters stay the
@@ -115,8 +125,10 @@ These open from perks once a dynasty file is loaded.
 - Lists only injured players; picks one and clears their entire injury block instantly.
 
 #### Transfer Shock
-- Pick one of your players, then a rival team. If the rival is at the 85 cap, their lowest-rated
-  player is released to free agency to make room.
+- Three-column screen: your roster, the rival teams, and the rival's roster.
+- **SWAP PLAYERS** — trade one-for-one (both rosters stay at 85).
+- **CUT FOR SPACE** — when the rival is at the 85 cap, cut one of their players to make room for
+  yours.
 
 #### Position Coach
 - Pick a player, then any position (CFB25 PositionE enum, e.g. QB → WR → KR).
@@ -125,7 +137,8 @@ These open from perks once a dynasty file is loaded.
 - Pick a player to get one extra year of eligibility (FR → SO → JR → SR → GR).
 
 #### FA Sign
-- Pick any free agent to add to your team. Your roster must have room (85 cap) — cut first if full.
+- Two-column screen (free agents / your roster). If your roster is full, pick someone to cut and
+  use **SIGN & CUT** to make room in one step.
 
 ### 💾 Save / Backup
 
@@ -139,14 +152,15 @@ These open from perks once a dynasty file is loaded.
 ## Known Limitations
 
 - **Every dynasty team is usually at the 85-player cap.** Roster *adds* (Steal, FA Sign, Transfer
-  Shock) release the rival's / make-room cut automatically (Transfer Shock) or require you to cut
-  first (Steal, FA Sign). The tool enforces the cap so the save never gets rejected by the game.
+  Shock) use a one-for-one **swap** or a cut-to-make-room flow (**CUT FOR SPACE** / **SIGN & CUT**
+  buttons). The tool enforces the cap so the save never gets rejected by the game.
 - **Honor-system perks** (Emergency QB, Retire Player, Chat Picks, Recruit Boost, Transfer Portal,
   Stadium Upgrade, NIL Boost, Playbook Leak, Red Shirt, Facility Boost) are *not* written to the
   save — the league applies them by hand.
-- Roster moves, dev-trait changes, injuries/heals, positions, and school years are written to the
-  player table **and** the roster array (bit-verified, reload-checked by `SchemaDump checkroster`).
-  A live in-game test confirmed a stolen player appears on the new team after reload.
+- Roster moves (steal, swap, cut, FA sign), dev-trait changes, injuries/heals, positions, and
+  school years are written to the player table **and** the roster array (bit-verified, reload-
+  checked by `SchemaDump checkroster` — 0 mismatches on the test save). Dev upgrades and player
+  transfers have been confirmed live in-game.
 - No mod is required for edits to persist.
 
 ---
